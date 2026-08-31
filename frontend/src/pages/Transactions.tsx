@@ -76,20 +76,40 @@ export default function Transactions() {
     await loadTransactions()
   }
 
+  async function handleExportPdf() {
+    const month = new Date().toISOString().slice(0, 7)
+    const res = await api.get('/reports/monthly', { params: { month }, responseType: 'blob' })
+    const url = URL.createObjectURL(res.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `fintrack-laporan-${month}.pdf`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-semibold text-ink">Riwayat Transaksi</h1>
-        <button
-          type="button"
-          onClick={() => {
-            setEditing(null)
-            setShowForm(true)
-          }}
-          className="rounded-md bg-ledger-green px-4 py-2 text-sm text-paper"
-        >
-          Tambah Transaksi
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={handleExportPdf}
+            className="rounded-md border border-border px-4 py-2 text-sm text-ink"
+          >
+            Export PDF
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(null)
+              setShowForm(true)
+            }}
+            className="rounded-md bg-ledger-green px-4 py-2 text-sm text-paper"
+          >
+            Tambah Transaksi
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
