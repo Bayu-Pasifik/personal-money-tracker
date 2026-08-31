@@ -9,12 +9,12 @@
 ## Fase 0 — Setup Proyek
 
 ### Backend (Laravel)
-- [ ] Init project Laravel baru (`composer create-project laravel/laravel backend`), pastikan versi PHP sesuai yang tersedia di shared hosting (≥ 8.2)
-- [ ] Setup koneksi database MySQL/MariaDB di `.env`, test koneksi
-- [ ] Setup Laravel Sanctum untuk auth API
-- [ ] Setup CORS (`config/cors.php`) agar bisa diakses dari domain/subdomain frontend
-- [ ] Setup struktur folder API (`routes/api.php`), buat health-check endpoint (`GET /api/ping`)
-- [ ] Siapkan `.env.example` dengan semua variabel yang dibutuhkan (DB, Telegram bot token, Claude API key) — **jangan pernah commit `.env` asli**
+- [x] Init project Laravel baru (`composer create-project laravel/laravel backend`), pastikan versi PHP sesuai yang tersedia di shared hosting (≥ 8.2)
+- [x] Setup koneksi database MySQL/MariaDB di `.env`, test koneksi
+- [x] Setup Laravel Sanctum untuk auth API
+- [x] Setup CORS (`config/cors.php`) agar bisa diakses dari domain/subdomain frontend
+- [x] Setup struktur folder API (`routes/api.php`), buat health-check endpoint (`GET /api/ping`)
+- [x] Siapkan `.env.example` dengan semua variabel yang dibutuhkan (DB, Telegram bot token, Claude API key) — **jangan pernah commit `.env` asli**
 
 ### Frontend (React)
 - [ ] Init project Vite + React + TypeScript (`npm create vite@latest frontend -- --template react-ts`)
