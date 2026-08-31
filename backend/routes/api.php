@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AiController;
+use App\Http\Controllers\Api\TelegramConnectController;
+use App\Http\Controllers\Api\TelegramWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,4 +16,7 @@ Route::get('/user', function (Request $request) {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ai/parse-transaction', [AiController::class, 'parseTransaction']);
+    Route::post('/telegram/connect-code', [TelegramConnectController::class, 'generateCode']);
 });
+
+Route::post('/telegram/webhook', TelegramWebhookController::class);

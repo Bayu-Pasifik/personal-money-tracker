@@ -48,15 +48,15 @@
 - [x] Buat endpoint internal `POST /api/ai/parse-transaction` (dipakai webhook Telegram maupun input manual dari web)
 
 ### 1.3 Telegram Bot
-- [ ] Daftarkan bot lewat BotFather, simpan token di `.env`
-- [ ] Buat route webhook `POST /api/telegram/webhook`, daftarkan URL webhook ke Telegram
-- [ ] Handler: terima pesan → panggil `TransactionParserService` → simpan ke `transactions` jika valid
-- [ ] Balasan konfirmasi ke user (format sesuai contoh di PRD lampiran 16, angka pakai pemisah ribuan Indonesia)
-- [ ] Generate komentar AI singkat setelah transaksi tersimpan (mengacu StyleGuide 7 — 1 kalimat, proporsional, tidak menghakimi)
-- [ ] Handler untuk input ambigu → bot balas pertanyaan klarifikasi, simpan state sementara (mis. cache/session) sampai user jawab
-- [ ] Command `/undo` — batalkan transaksi terakhir milik user tsb
-- [ ] Command `/start` — hubungkan `telegram_chat_id` ke akun user (verifikasi kepemilikan akun)
-- [ ] Handle multi-transaksi dalam satu pesan (pesan multi-baris)
+- [ ] Daftarkan bot lewat BotFather, simpan token di `.env` — **belum dilakukan, butuh token asli dari user** (kode sudah siap pakai lewat `php artisan telegram:set-webhook` begitu `TELEGRAM_BOT_TOKEN` diisi)
+- [x] Buat route webhook `POST /api/telegram/webhook`, daftarkan URL webhook ke Telegram (command `telegram:set-webhook` disiapkan, tinggal jalan setelah token diisi)
+- [x] Handler: terima pesan → panggil `TransactionParserService` → simpan ke `transactions` jika valid
+- [x] Balasan konfirmasi ke user (format sesuai contoh di PRD lampiran 16, angka pakai pemisah ribuan Indonesia)
+- [x] Generate komentar AI singkat setelah transaksi tersimpan (mengacu StyleGuide 7 — 1 kalimat, proporsional, tidak menghakimi)
+- [x] Handler untuk input ambigu → bot balas pertanyaan klarifikasi, simpan state sementara (mis. cache/session) sampai user jawab
+- [x] Command `/undo` — batalkan transaksi terakhir milik user tsb
+- [x] Command `/start` — hubungkan `telegram_chat_id` ke akun user (verifikasi kepemilikan akun, lewat kode koneksi sekali pakai dari `POST /api/telegram/connect-code`)
+- [x] Handle multi-transaksi dalam satu pesan (pesan multi-baris)
 
 ### 1.4 REST API untuk Dashboard
 - [ ] `GET /api/transactions` (filter: tanggal, kategori, tipe; pagination)
