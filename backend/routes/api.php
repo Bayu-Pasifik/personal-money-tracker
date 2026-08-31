@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdvisoryController;
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
@@ -25,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::post('/ai/parse-transaction', [AiController::class, 'parseTransaction']);
+    Route::post('/advisory/ask', [AdvisoryController::class, 'ask']);
     Route::post('/telegram/connect-code', [TelegramConnectController::class, 'generateCode']);
 
     Route::apiResource('transactions', TransactionController::class)->only(['index', 'store', 'update', 'destroy']);

@@ -102,7 +102,7 @@ Yang masih butuh tindakan dari kamu (di luar jangkauan environment ini):
 
 ## Fase 2
 
-- [ ] Endpoint & UI advisory: `POST /api/advisory/ask` — ambil ringkasan data user sebagai konteks, kirim ke Claude API (percakapan bebas, bukan tool-calling)
+- [x] Endpoint advisory: `POST /api/advisory/ask` — ambil ringkasan data user sebagai konteks, kirim ke Claude API (percakapan bebas, bukan tool-calling). Riwayat percakapan disimpan per sesi (idle 30 menit) di `advisory_sessions` untuk memori kontekstual jangka pendek (FR-2.4)
 - [ ] Command Telegram `/tanya <pertanyaan>` — panggil endpoint advisory yang sama
 - [ ] Panel chat advisory di web (styling sesuai StyleGuide 5.4 — bubble AI vs user, angka tetap mono inline)
 - [ ] Simpan riwayat sesi advisory (`advisory_sessions`) untuk konteks jangka pendek dalam sesi yang sama
