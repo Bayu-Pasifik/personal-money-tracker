@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SummaryController;
 use App\Http\Controllers\Api\TelegramConnectController;
 use App\Http\Controllers\Api\TelegramWebhookController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('transactions', TransactionController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::apiResource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::apiResource('budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
+    Route::apiResource('wallets', WalletController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('/summary', SummaryController::class);
     Route::get('/reports/monthly', [ReportController::class, 'monthly']);
 });

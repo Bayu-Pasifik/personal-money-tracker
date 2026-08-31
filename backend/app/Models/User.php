@@ -52,4 +52,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(Budget::class);
     }
+
+    public function wallets(): HasMany
+    {
+        return $this->hasMany(Wallet::class);
+    }
+
+    /**
+     * Dompet default user — dibuat otomatis kalau belum ada (mis. akun lama
+     * dari sebelum fitur multi-wallet ada). Semua transaksi tanpa wallet_id
+     * eksplisit jatuh ke sini.
+     */
+    public function defaultWallet(): Wallet
+    {
+        return $this->wallets()->firstOrCreate(
+            ['is_default' => true],
+            ['name' => 'Dompet Utama'],
+        );
+    }
 }

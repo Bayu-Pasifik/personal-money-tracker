@@ -176,12 +176,14 @@ class TelegramBotService
         }
 
         $confirmations = [];
+        $walletId = $user->defaultWallet()->id;
 
         foreach ($result['transactions'] as $parsed) {
             $category = $this->resolveCategory($user, $parsed['category'], $parsed['type']);
 
             $transaction = $user->transactions()->create([
                 'category_id' => $category->id,
+                'wallet_id' => $walletId,
                 'amount' => $parsed['amount'],
                 'type' => $parsed['type'],
                 'description' => $parsed['description'],

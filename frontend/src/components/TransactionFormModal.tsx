@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import type { Category, Transaction, TransactionType } from '../types'
+import type { Category, Transaction, TransactionType, Wallet } from '../types'
 
 interface TransactionFormModalProps {
   categories: Category[]
+  wallets?: Wallet[]
   initial?: Transaction | null
   onClose: () => void
   onSubmit: (payload: {
     category_id: number
+    wallet_id?: number
     amount: number
     type: TransactionType
     description: string
@@ -14,10 +16,13 @@ interface TransactionFormModalProps {
   }) => Promise<void>
 }
 
-export function TransactionFormModal({ categories, initial, onClose, onSubmit }: TransactionFormModalProps) {
+export function TransactionFormModal({ categories, wallets = [], initial, onClose, onSubmit }: TransactionFormModalProps) {
   const [type, setType] = useState<TransactionType>(initial?.type ?? 'expense')
   const [categoryId, setCategoryId] = useState<number>(
     initial?.category_id ?? categories.find((category) => category.type === (initial?.type ?? 'expense'))?.id ?? 0,
+  )
+  const [walletId, setWalletId] = useState<number | ''>(
+    initial?.wallet_id ?? wallets.find((w) => w.is_default)?.id ?? '',
   )
   const [amount, setAmount] = useState<string>(initial ? String(initial.amount) : '')
   const [description, setDescription] = useState(initial?.description ?? '')
@@ -58,6 +63,7 @@ export function TransactionFormModal({ categories, initial, onClose, onSubmit }:
     try {
       await onSubmit({
         category_id: categoryId,
+        wallet_id: walletId || undefined,
         amount: parsedAmount,
         type,
         description: description.trim(),
@@ -111,6 +117,23 @@ export function TransactionFormModal({ categories, initial, onClose, onSubmit }:
             ))}
           </select>
         </label>
+
+        {wallets.length > 1 && (
+          <label className="mt-4 block text-sm text-ink-muted">
+            Dompet
+            <select
+              value={walletId}
+              onChange={(e) => setWalletId(e.target.value ? Number(e.target.value) : '')}
+              className="mt-1 w-full rounded-md border border-border bg-paper px-3 py-2 font-body text-sm text-ink"
+            >
+              {wallets.map((wallet) => (
+                <option key={wallet.id} value={wallet.id}>
+                  {wallet.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <label className="mt-4 block text-sm text-ink-muted">
           Nominal (Rp)

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { LedgerTable } from '../components/LedgerTable'
 import { TransactionFormModal } from '../components/TransactionFormModal'
 import { api } from '../lib/api'
-import type { Category, PaginatedResponse, Transaction, TransactionType } from '../types'
+import type { Category, PaginatedResponse, Transaction, TransactionType, Wallet } from '../types'
 
 interface Filters {
   type: TransactionType | ''
@@ -13,6 +13,7 @@ interface Filters {
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [wallets, setWallets] = useState<Wallet[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Filters>({ type: '', category_id: '', search: '' })
@@ -22,6 +23,11 @@ export default function Transactions() {
   async function loadCategories() {
     const res = await api.get<Category[]>('/categories')
     setCategories(res.data)
+  }
+
+  async function loadWallets() {
+    const res = await api.get<Wallet[]>('/wallets')
+    setWallets(res.data)
   }
 
   async function loadTransactions() {
@@ -46,6 +52,7 @@ export default function Transactions() {
 
   useEffect(() => {
     loadCategories()
+    loadWallets()
   }, [])
 
   useEffect(() => {
@@ -55,6 +62,7 @@ export default function Transactions() {
 
   async function handleCreateOrUpdate(payload: {
     category_id: number
+    wallet_id?: number
     amount: number
     type: TransactionType
     description: string
@@ -163,6 +171,7 @@ export default function Transactions() {
       {showForm && (
         <TransactionFormModal
           categories={categories}
+          wallets={wallets}
           initial={editing}
           onClose={() => {
             setShowForm(false)

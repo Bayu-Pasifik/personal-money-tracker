@@ -14,6 +14,7 @@ export interface Transaction {
   user_id: number
   category_id: number
   category: Category
+  wallet_id: number | null
   amount: number
   type: TransactionType
   description: string
@@ -54,4 +55,11 @@ export interface Budget {
   month: string
   limit_amount: number
   spent: number
+}
+
+export interface Wallet {
+  id: number
+  user_id: number
+  name: string
+  is_default: boolean
 }

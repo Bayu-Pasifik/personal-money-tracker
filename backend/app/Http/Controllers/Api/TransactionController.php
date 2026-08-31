@@ -24,7 +24,7 @@ class TransactionController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $query = $request->user()->transactions()->with('category')->latest('transaction_date')->latest('id');
+        $query = $request->user()->transactions()->with(['category', 'wallet'])->latest('transaction_date')->latest('id');
 
         if (! empty($validated['from'])) {
             $query->whereDate('transaction_date', '>=', $validated['from']);
@@ -58,10 +58,11 @@ class TransactionController extends Controller
 
         $transaction = $request->user()->transactions()->create([
             ...$validated,
+            'wallet_id' => $validated['wallet_id'] ?? $request->user()->defaultWallet()->id,
             'source' => 'web',
         ]);
 
-        return response()->json($transaction->load('category'), 201);
+        return response()->json($transaction->load(['category', 'wallet']), 201);
     }
 
     public function update(Request $request, Transaction $transaction): JsonResponse
@@ -72,7 +73,7 @@ class TransactionController extends Controller
 
         $transaction->update($validated);
 
-        return response()->json($transaction->load('category'));
+        return response()->json($transaction->load(['category', 'wallet']));
     }
 
     public function destroy(Request $request, Transaction $transaction): JsonResponse
@@ -96,6 +97,11 @@ class TransactionController extends Controller
                 Rule::exists('categories', 'id')
                     ->where('user_id', $request->user()->id)
                     ->where('type', $request->input('type')),
+            ],
+            'wallet_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('wallets', 'id')->where('user_id', $request->user()->id),
             ],
             'amount' => ['required', 'integer', 'min:1'],
             'type' => ['required', 'in:income,expense'],

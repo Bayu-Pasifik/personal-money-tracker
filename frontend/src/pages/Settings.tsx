@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { api } from '../lib/api'
 import { formatRupiah } from '../lib/format'
-import type { Budget, Category, TransactionType } from '../types'
+import type { Budget, Category, TransactionType, Wallet } from '../types'
 
 export default function Settings() {
   const [code, setCode] = useState<string | null>(null)
@@ -22,6 +22,12 @@ export default function Settings() {
   const [budgetLimit, setBudgetLimit] = useState('')
   const [budgetError, setBudgetError] = useState<string | null>(null)
 
+  const [wallets, setWallets] = useState<Wallet[]>([])
+  const [newWalletName, setNewWalletName] = useState('')
+  const [walletError, setWalletError] = useState<string | null>(null)
+  const [editingWalletId, setEditingWalletId] = useState<number | null>(null)
+  const [editingWalletName, setEditingWalletName] = useState('')
+
   async function loadCategories() {
     const res = await api.get<Category[]>('/categories')
     setCategories(res.data)
@@ -32,9 +38,15 @@ export default function Settings() {
     setBudgets(res.data)
   }
 
+  async function loadWallets() {
+    const res = await api.get<Wallet[]>('/wallets')
+    setWallets(res.data)
+  }
+
   useEffect(() => {
     loadCategories()
     loadBudgets()
+    loadWallets()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -118,6 +130,45 @@ export default function Settings() {
     if (!confirm(`Hapus budget untuk "${budget.category_name}"?`)) return
     await api.delete(`/budgets/${budget.id}`)
     await loadBudgets()
+  }
+
+  async function handleAddWallet(event: FormEvent) {
+    event.preventDefault()
+    setWalletError(null)
+    const name = newWalletName.trim()
+    if (!name) {
+      setWalletError('Nama dompet belum diisi.')
+      return
+    }
+    try {
+      await api.post('/wallets', { name })
+      setNewWalletName('')
+      await loadWallets()
+    } catch {
+      setWalletError('Gagal menambah dompet. Coba lagi.')
+    }
+  }
+
+  async function handleRenameWallet(wallet: Wallet) {
+    const name = editingWalletName.trim()
+    if (!name) return
+    try {
+      await api.put(`/wallets/${wallet.id}`, { name })
+      setEditingWalletId(null)
+      await loadWallets()
+    } catch {
+      setWalletError('Gagal mengubah nama dompet.')
+    }
+  }
+
+  async function handleDeleteWallet(wallet: Wallet) {
+    if (!confirm(`Hapus dompet "${wallet.name}"?`)) return
+    try {
+      await api.delete(`/wallets/${wallet.id}`)
+      await loadWallets()
+    } catch {
+      setWalletError('Gagal menghapus dompet.')
+    }
   }
 
   return (
@@ -290,6 +341,74 @@ export default function Settings() {
         </form>
 
         {budgetError && <p className="mt-3 text-sm text-ledger-red">{budgetError}</p>}
+      </div>
+
+      <div className="max-w-lg rounded-md border border-border bg-paper-elevated p-6">
+        <h2 className="font-body text-lg font-semibold text-ink">Dompet</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Pisahkan pencatatan per rekening/tunai. Dompet default tidak bisa dihapus.
+        </p>
+
+        <ul className="mt-4 divide-y divide-border">
+          {wallets.map((wallet) => (
+            <li key={wallet.id} className="flex items-center justify-between py-2 text-sm">
+              {editingWalletId === wallet.id ? (
+                <div className="flex flex-1 items-center gap-2">
+                  <input
+                    type="text"
+                    value={editingWalletName}
+                    onChange={(e) => setEditingWalletName(e.target.value)}
+                    className="flex-1 rounded-md border border-border bg-paper px-2 py-1 text-sm text-ink"
+                  />
+                  <button type="button" onClick={() => handleRenameWallet(wallet)} className="text-ledger-green">
+                    Simpan
+                  </button>
+                  <button type="button" onClick={() => setEditingWalletId(null)} className="text-ink-muted">
+                    Batal
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span className="text-ink">
+                    {wallet.name} {wallet.is_default && <span className="text-ink-muted">(default)</span>}
+                  </span>
+                  <span className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingWalletId(wallet.id)
+                        setEditingWalletName(wallet.name)
+                      }}
+                      className="text-ink-muted hover:text-ink"
+                    >
+                      Edit
+                    </button>
+                    {!wallet.is_default && (
+                      <button type="button" onClick={() => handleDeleteWallet(wallet)} className="text-ledger-red hover:underline">
+                        Hapus
+                      </button>
+                    )}
+                  </span>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        <form onSubmit={handleAddWallet} className="mt-4 flex gap-2">
+          <input
+            type="text"
+            value={newWalletName}
+            onChange={(e) => setNewWalletName(e.target.value)}
+            placeholder="Nama dompet baru"
+            className="flex-1 rounded-md border border-border bg-paper px-3 py-2 text-sm text-ink"
+          />
+          <button type="submit" className="rounded-md bg-ledger-green px-4 py-2 text-sm text-paper">
+            Tambah
+          </button>
+        </form>
+
+        {walletError && <p className="mt-3 text-sm text-ledger-red">{walletError}</p>}
       </div>
     </div>
   )
