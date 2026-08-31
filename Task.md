@@ -80,10 +80,10 @@
 Diuji langsung di browser (login, dashboard, tambah/edit/hapus transaksi, filter, halaman Pengaturan generate kode koneksi) — ditemukan & diperbaiki bug: form tambah transaksi default `category_id` ke kategori pertama tanpa filter tipe (income/expense), berisiko salah simpan kategori kalau user tidak menyentuh dropdown. Diperbaiki di frontend (reset kategori saat tipe berganti) dan diperkuat validasi backend (`category_id` harus match `type` & `user_id`).
 
 ### 1.6 Reminder Harian
-- [ ] Buat Artisan command `reminder:check-daily` — cek transaksi hari ini per user, kirim pesan Telegram jika kosong, catat ke `reminder_logs`
-- [ ] Daftarkan schedule di `routes/console.php` (atau `Kernel.php`) sesuai `reminder_time` user
-- [ ] Setup 1 baris Cron Job di cPanel: `* * * * * php /home/USER/artisan schedule:run >> /dev/null 2>&1`
-- [ ] Test idempotency: pastikan tidak kirim reminder dobel walau cron/schedule run berkali-kali dalam rentang waktu yang sama
+- [x] Buat Artisan command `reminder:check-daily` — cek transaksi hari ini per user, kirim pesan Telegram jika kosong, catat ke `reminder_logs`
+- [x] Daftarkan schedule di `routes/console.php` (atau `Kernel.php`) sesuai `reminder_time` user — command jalan tiap menit, internal filter per user berdasarkan `reminder_time` masing-masing
+- [ ] Setup 1 baris Cron Job di cPanel: `* * * * * php /home/USER/artisan schedule:run >> /dev/null 2>&1` — **belum dilakukan, butuh akses shared hosting asli** (kode & instruksi sudah siap)
+- [x] Test idempotency: pastikan tidak kirim reminder dobel walau cron/schedule run berkali-kali dalam rentang waktu yang sama
 
 ### 1.7 QA Fase 1
 - [ ] Test end-to-end: kirim pesan Telegram → cek muncul di DB → cek muncul di dashboard
