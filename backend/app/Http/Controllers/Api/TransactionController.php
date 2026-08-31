@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TransactionController extends Controller
 {
@@ -89,7 +90,13 @@ class TransactionController extends Controller
     private function validatedPayload(Request $request): array
     {
         return $request->validate([
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'category_id' => [
+                'required',
+                'integer',
+                Rule::exists('categories', 'id')
+                    ->where('user_id', $request->user()->id)
+                    ->where('type', $request->input('type')),
+            ],
             'amount' => ['required', 'integer', 'min:1'],
             'type' => ['required', 'in:income,expense'],
             'description' => ['required', 'string', 'max:255'],

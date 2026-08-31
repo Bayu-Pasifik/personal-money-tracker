@@ -68,14 +68,16 @@
 - [x] Endpoint auth: `POST /api/login`, `POST /api/logout` (Sanctum)
 
 ### 1.5 Web Dashboard — Halaman
-- [ ] Halaman Login (single-user, sesuai StyleGuide 5.1 untuk styling tombol)
-- [ ] Halaman Dashboard: 3 kartu ringkasan (Saldo, Pemasukan, Pengeluaran bulan berjalan) — grid sesuai StyleGuide 4
-- [ ] Grafik tren bulanan (line chart, Recharts) — warna sesuai StyleGuide 5.5
-- [ ] Grafik breakdown kategori (pie chart) — warna sesuai palet kategori StyleGuide 5.3
-- [ ] Tabel riwayat transaksi bergaya ledger (garis tipis, nominal mono rata kanan) sesuai StyleGuide 4
-- [ ] Form tambah/edit transaksi manual (modal atau halaman terpisah)
-- [ ] Implementasi badge "cap" (StyleGuide 5.2) untuk transaksi yang baru masuk secara live (polling atau websocket sederhana — tentukan pendekatan realtime yang paling ringan untuk shared hosting, mis. polling interval singkat)
-- [ ] Empty state & error message sesuai copy guideline StyleGuide 7
+- [x] Halaman Login (single-user, sesuai StyleGuide 5.1 untuk styling tombol)
+- [x] Halaman Dashboard: 3 kartu ringkasan (Saldo, Pemasukan, Pengeluaran bulan berjalan) — grid sesuai StyleGuide 4
+- [x] Grafik tren bulanan (line chart, Recharts) — warna sesuai StyleGuide 5.5
+- [x] Grafik breakdown kategori (pie chart) — warna sesuai palet kategori StyleGuide 5.3
+- [x] Tabel riwayat transaksi bergaya ledger (garis tipis, nominal mono rata kanan) sesuai StyleGuide 4
+- [x] Form tambah/edit transaksi manual (modal)
+- [x] Implementasi badge "cap" (StyleGuide 5.2) untuk transaksi yang baru masuk secara live (polling 15 detik di Dashboard, pendekatan paling ringan untuk shared hosting)
+- [x] Empty state & error message sesuai copy guideline StyleGuide 7
+
+Diuji langsung di browser (login, dashboard, tambah/edit/hapus transaksi, filter, halaman Pengaturan generate kode koneksi) — ditemukan & diperbaiki bug: form tambah transaksi default `category_id` ke kategori pertama tanpa filter tipe (income/expense), berisiko salah simpan kategori kalau user tidak menyentuh dropdown. Diperbaiki di frontend (reset kategori saat tipe berganti) dan diperkuat validasi backend (`category_id` harus match `type` & `user_id`).
 
 ### 1.6 Reminder Harian
 - [ ] Buat Artisan command `reminder:check-daily` — cek transaksi hari ini per user, kirim pesan Telegram jika kosong, catat ke `reminder_logs`

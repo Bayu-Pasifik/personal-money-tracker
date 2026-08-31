@@ -52,3 +52,30 @@ body {
   color: var(--color-ink);
   font-family: var(--font-body);
 }
+
+/* StyleGuide.md §6 — animasi cap: scale 1.15->1.0 + rotate -14deg->-8deg, ~150ms, sedikit overshoot */
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.15) rotate(-14deg);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(0.97) rotate(-7deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-8deg);
+  }
+}
+
+.cap-badge {
+  animation: stamp-in 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cap-badge {
+    animation: none;
+    transition: opacity 150ms ease-out;
+  }
+}
