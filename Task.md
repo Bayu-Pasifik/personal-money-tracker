@@ -107,7 +107,9 @@ Yang masih butuh tindakan dari kamu (di luar jangkauan environment ini):
 - [x] Panel chat advisory di web (styling sesuai StyleGuide 5.4 — bubble AI vs user, angka tetap mono inline). Diuji di browser (bubble user hijau, empty state, error state saat `ANTHROPIC_API_KEY` belum diisi menampilkan pesan error yang jelas sesuai StyleGuide §7)
 - [x] Simpan riwayat sesi advisory (`advisory_sessions`) untuk konteks jangka pendek dalam sesi yang sama
 - [x] CRUD kategori custom dari halaman Pengaturan web — kategori default (`is_default`) tidak bisa diubah/dihapus, kategori yang masih dipakai transaksi tidak bisa dihapus. Diuji otomatis (`CategoryApiTest`, 6 skenario) + manual di browser
-- [ ] Koreksi transaksi via chat (selain `/undo`, mis. "ganti kategori transaksi terakhir jadi Hiburan")
+- [x] Koreksi transaksi via chat (selain `/undo`, mis. "ganti kategori transaksi terakhir jadi Hiburan") — tool ketiga `correct_last_transaction` di parser AI (kategori/nominal/deskripsi), diterapkan ke transaksi terakhir user
+
+**Fase 2 selesai.** 36/36 test backend lulus.
 
 ---
 

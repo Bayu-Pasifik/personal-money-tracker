@@ -21,6 +21,7 @@ class TransactionParserService
      *     status: 'parsed'|'needs_clarification'|'mixed',
      *     transactions: array<int, array{amount: int, type: string, category: string, description: string}>,
      *     clarifications: array<int, string>,
+     *     corrections: array<int, array{category: ?string, amount: ?int, description: ?string}>,
      * }
      */
     public function parse(string $text, array $availableCategories = []): array
@@ -75,6 +76,10 @@ class TransactionParserService
             3. `description` singkat, berbasis kata-kata pengguna, jangan ditambah opini.
             4. Selalu tentukan `type` income atau expense berdasarkan konteks (gaji, bonus,
                transfer masuk = income; sisanya umumnya expense).
+            5. Jika pesan adalah KOREKSI ke transaksi TERAKHIR yang sudah tersimpan (bukan
+               transaksi baru) — ditandai kata seperti "ganti", "harusnya", "salah",
+               "ubah", "koreksi", "terakhir" — panggil `correct_last_transaction`, BUKAN
+               `record_transaction`. Isi hanya field yang memang disebut user berubah.
 
             Contoh:
             - "makan malam 30rb" -> record_transaction(amount=30000, type=expense, category=Makanan, description="Makan malam")
@@ -82,6 +87,9 @@ class TransactionParserService
             - "beli baju 150.000" -> record_transaction(amount=150000, type=expense, category=Belanja, description="Beli baju")
             - "1,5jt buat servis motor" -> record_transaction(amount=1500000, type=expense, category=Transportasi, description="Servis motor")
             - "beli barang" (tanpa nominal) -> request_clarification("Nominalnya belum kebaca. Coba format seperti 'beli barang 50rb'.")
+            - "ganti kategori transaksi terakhir jadi Hiburan" -> correct_last_transaction(category=Hiburan)
+            - "eh salah, harusnya 20rb bukan 15rb" -> correct_last_transaction(amount=20000)
+            - "transaksi terakhir harusnya bensin motor" -> correct_last_transaction(description="Bensin motor")
             PROMPT;
     }
 
@@ -132,12 +140,24 @@ class TransactionParserService
                     'required' => ['question'],
                 ],
             ],
+            [
+                'name' => 'correct_last_transaction',
+                'description' => 'Dipanggil kalau pesan user adalah koreksi ke transaksi TERAKHIR yang sudah tersimpan (bukan transaksi baru). Isi hanya field yang disebut berubah.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'category' => ['type' => 'string', 'enum' => $categories],
+                        'amount' => ['type' => 'integer', 'description' => 'Nominal baru dalam Rupiah, angka bulat positif'],
+                        'description' => ['type' => 'string', 'description' => 'Deskripsi baru transaksi'],
+                    ],
+                ],
+            ],
         ];
     }
 
     /**
      * @param  array<string, mixed>  $response
-     * @return array{status: string, transactions: array<int, array<string, mixed>>, clarifications: array<int, string>}
+     * @return array{status: string, transactions: array<int, array<string, mixed>>, clarifications: array<int, string>, corrections: array<int, array<string, mixed>>}
      */
     private function extractToolCalls(array $response): array
     {
@@ -149,6 +169,7 @@ class TransactionParserService
 
         $transactions = [];
         $clarifications = [];
+        $corrections = [];
 
         foreach ($content as $block) {
             if (($block['type'] ?? null) !== 'tool_use') {
@@ -166,15 +187,21 @@ class TransactionParserService
                 ];
             } elseif ($block['name'] === 'request_clarification') {
                 $clarifications[] = $input['question'] ?? 'Bisa diperjelas lagi transaksinya?';
+            } elseif ($block['name'] === 'correct_last_transaction') {
+                $corrections[] = [
+                    'category' => $input['category'] ?? null,
+                    'amount' => isset($input['amount']) ? (int) $input['amount'] : null,
+                    'description' => $input['description'] ?? null,
+                ];
             }
         }
 
-        if ($transactions === [] && $clarifications === []) {
+        if ($transactions === [] && $clarifications === [] && $corrections === []) {
             throw new AiParsingException('Claude tidak memanggil tool manapun untuk input ini.');
         }
 
         $status = match (true) {
-            $transactions !== [] && $clarifications !== [] => 'mixed',
+            $clarifications !== [] && ($transactions !== [] || $corrections !== []) => 'mixed',
             $clarifications !== [] => 'needs_clarification',
             default => 'parsed',
         };
@@ -183,6 +210,7 @@ class TransactionParserService
             'status' => $status,
             'transactions' => $transactions,
             'clarifications' => $clarifications,
+            'corrections' => $corrections,
         ];
     }
 }

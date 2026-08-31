@@ -166,4 +166,56 @@ class TelegramWebhookTest extends TestCase
         Http::assertSent(fn ($request) => str_contains($request->url(), 'sendMessage')
             && str_contains($request->data()['text'] ?? '', 'Ketik pertanyaanmu'));
     }
+
+    public function test_correction_message_updates_last_transaction_category(): void
+    {
+        $user = User::factory()->create(['telegram_chat_id' => '777']);
+        $this->seed(CategorySeeder::class);
+        $makanan = $user->categories()->where('name', 'Makanan')->first();
+        $hiburan = $user->categories()->where('name', 'Hiburan')->first();
+
+        $transaction = $user->transactions()->create([
+            'category_id' => $makanan->id, 'amount' => 30000, 'type' => 'expense',
+            'description' => 'Nonton bioskop', 'source' => 'telegram', 'transaction_date' => now(),
+        ]);
+
+        $this->fakeAiAndTelegram([
+            'content' => [[
+                'type' => 'tool_use',
+                'id' => 'toolu_01',
+                'name' => 'correct_last_transaction',
+                'input' => ['category' => 'Hiburan'],
+            ]],
+        ]);
+
+        $response = $this->postJson('/api/telegram/webhook', $this->webhookPayload('777', 'ganti kategori transaksi terakhir jadi Hiburan'));
+
+        $response->assertOk();
+        $this->assertSame($hiburan->id, $transaction->fresh()->category_id);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'sendMessage')
+            && str_contains($request->data()['text'] ?? '', 'Dikoreksi'));
+    }
+
+    public function test_correction_without_prior_transaction_tells_user_nothing_to_correct(): void
+    {
+        $user = User::factory()->create(['telegram_chat_id' => '888']);
+        $this->seed(CategorySeeder::class);
+
+        $this->fakeAiAndTelegram([
+            'content' => [[
+                'type' => 'tool_use',
+                'id' => 'toolu_01',
+                'name' => 'correct_last_transaction',
+                'input' => ['category' => 'Hiburan'],
+            ]],
+        ]);
+
+        $response = $this->postJson('/api/telegram/webhook', $this->webhookPayload('888', 'ganti kategori transaksi terakhir jadi Hiburan'));
+
+        $response->assertOk();
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'sendMessage')
+            && str_contains($request->data()['text'] ?? '', 'Belum ada transaksi'));
+    }
 }

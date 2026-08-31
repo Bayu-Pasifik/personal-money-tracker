@@ -167,6 +167,10 @@ class TelegramBotService
             $this->telegram->sendMessage($chatId, implode("\n", $result['clarifications']));
         }
 
+        if ($result['corrections'] !== []) {
+            $this->applyCorrections($chatId, $user, $result['corrections']);
+        }
+
         if ($result['transactions'] === []) {
             return;
         }
@@ -200,6 +204,53 @@ class TelegramBotService
         }
 
         $this->telegram->sendMessage($chatId, implode("\n\n", $confirmations));
+    }
+
+    /**
+     * PRD.md Task.md Fase 2: koreksi transaksi via chat selain `/undo`, mis.
+     * "ganti kategori transaksi terakhir jadi Hiburan".
+     *
+     * @param  array<int, array{category: ?string, amount: ?int, description: ?string}>  $corrections
+     */
+    private function applyCorrections(string $chatId, User $user, array $corrections): void
+    {
+        $last = $user->transactions()->latest('id')->first();
+
+        if (! $last) {
+            $this->telegram->sendMessage($chatId, 'Belum ada transaksi buat dikoreksi.');
+
+            return;
+        }
+
+        $changes = [];
+
+        foreach ($corrections as $correction) {
+            if (! empty($correction['category'])) {
+                $category = $this->resolveCategory($user, $correction['category'], $last->type);
+                $last->category_id = $category->id;
+                $changes[] = "kategori jadi {$category->name}";
+            }
+
+            if (! empty($correction['amount'])) {
+                $last->amount = $correction['amount'];
+                $changes[] = 'nominal jadi '.$this->formatRupiah($correction['amount']);
+            }
+
+            if (! empty($correction['description'])) {
+                $last->description = $correction['description'];
+                $changes[] = "deskripsi jadi \"{$correction['description']}\"";
+            }
+        }
+
+        if ($changes === []) {
+            $this->telegram->sendMessage($chatId, 'Aku belum nangkep apa yang mau diubah. Coba lebih spesifik, mis. "ganti kategori transaksi terakhir jadi Hiburan".');
+
+            return;
+        }
+
+        $last->save();
+
+        $this->telegram->sendMessage($chatId, 'Dikoreksi: '.implode(', ', $changes).".");
     }
 
     private function resolveUser(string $chatId): ?User

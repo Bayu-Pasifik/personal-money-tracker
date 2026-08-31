@@ -123,6 +123,22 @@ class TransactionParserServiceTest extends TestCase
         $this->assertCount(2, $result['transactions']);
     }
 
+    public function test_correction_intent_is_parsed_separately_from_new_transactions(): void
+    {
+        Http::fake([
+            '*' => Http::response($this->fakeToolUseResponse('correct_last_transaction', [
+                'category' => 'Hiburan',
+            ])),
+        ]);
+
+        $result = app(TransactionParserService::class)->parse('ganti kategori transaksi terakhir jadi Hiburan');
+
+        $this->assertSame('parsed', $result['status']);
+        $this->assertEmpty($result['transactions']);
+        $this->assertCount(1, $result['corrections']);
+        $this->assertSame('Hiburan', $result['corrections'][0]['category']);
+    }
+
     public function test_sends_tool_choice_any_so_model_must_use_a_tool(): void
     {
         Http::fake([
