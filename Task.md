@@ -34,12 +34,12 @@
 ## Fase 1 — MVP
 
 ### 1.1 Database & Model
-- [ ] Migration `users` (tambahan kolom: `telegram_chat_id`, `reminder_time`)
-- [ ] Migration `categories` (`user_id`, `name`, `type` income/expense, `is_default`, `color_key`)
-- [ ] Migration `transactions` (`user_id`, `category_id`, `amount`, `type`, `description`, `raw_input_text`, `source`, `ai_comment`, `transaction_date`)
-- [ ] Migration `reminder_logs` (`user_id`, `date`, `sent_at`, `was_needed`)
-- [ ] Seeder kategori default (Makanan, Transportasi, Belanja, Hiburan, Tagihan, Kesehatan, Gaji, Lainnya) sesuai palet kategori di StyleGuide 5.3
-- [ ] Model Eloquent + relasi (`User hasMany Transaction`, `Transaction belongsTo Category`, dst.)
+- [x] Migration `users` (tambahan kolom: `telegram_chat_id`, `reminder_time`)
+- [x] Migration `categories` (`user_id`, `name`, `type` income/expense, `is_default`, `color_key`)
+- [x] Migration `transactions` (`user_id`, `category_id`, `amount`, `type`, `description`, `raw_input_text`, `source`, `ai_comment`, `transaction_date`)
+- [x] Migration `reminder_logs` (`user_id`, `date`, `sent_at`, `was_needed`)
+- [x] Seeder kategori default (Makanan, Transportasi, Belanja, Hiburan, Tagihan, Kesehatan, Gaji, Lainnya) sesuai palet kategori di StyleGuide 5.3
+- [x] Model Eloquent + relasi (`User hasMany Transaction`, `Transaction belongsTo Category`, dst.)
 
 ### 1.2 Integrasi AI — Parsing Transaksi
 - [ ] Buat service class `TransactionParserService` yang memanggil Claude API dengan tool-calling (schema: `amount`, `type`, `category`, `description`)
