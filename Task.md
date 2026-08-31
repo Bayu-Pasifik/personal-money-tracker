@@ -117,7 +117,7 @@ Yang masih butuh tindakan dari kamu (di luar jangkauan environment ini):
 
 - [x] Migration & model `budgets` (`user_id`, `category_id`, `month`, `limit_amount`)
 - [x] UI setting budget per kategori di halaman Pengaturan — progress bar spent/limit, warna merah kalau over budget, diuji di browser
-- [ ] Logic notifikasi early-warning saat pengeluaran kategori mendekati/melewati limit (trigger dari job yang jalan setiap transaksi baru tersimpan)
+- [x] Logic notifikasi early-warning saat pengeluaran kategori mendekati/melewati limit (trigger dari job yang jalan setiap transaksi baru tersimpan) — `TransactionObserver` (event `created`, jalan untuk transaksi dari Telegram maupun web) memanggil `BudgetWarningService`, kirim notif Telegram sekali per ambang (80%/100%) dilewati, bukan tiap transaksi
 - [ ] Export laporan bulanan (PDF dan/atau Excel) — sesuaikan library yang ringan untuk shared hosting (mis. `barryvdh/laravel-dompdf`)
 - [ ] Dukungan multi-wallet (`wallets` table, relasi ke `transactions`)
 
