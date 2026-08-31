@@ -136,4 +136,34 @@ class TelegramWebhookTest extends TestCase
         $response->assertOk();
         $this->assertDatabaseCount('transactions', 0);
     }
+
+    public function test_tanya_command_returns_advisory_answer(): void
+    {
+        $user = User::factory()->create(['telegram_chat_id' => '555']);
+        $this->seed(CategorySeeder::class);
+
+        $this->fakeAiAndTelegram([], 'Saldo bersihmu bulan ini masih aman.');
+
+        $response = $this->postJson('/api/telegram/webhook', $this->webhookPayload('555', '/tanya gimana kondisi keuanganku?'));
+
+        $response->assertOk();
+        $this->assertDatabaseCount('advisory_sessions', 1);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'sendMessage')
+            && str_contains($request->data()['text'] ?? '', 'Saldo bersihmu bulan ini masih aman.'));
+    }
+
+    public function test_tanya_without_question_asks_for_one(): void
+    {
+        $user = User::factory()->create(['telegram_chat_id' => '666']);
+        $this->fakeAiAndTelegram([]);
+
+        $response = $this->postJson('/api/telegram/webhook', $this->webhookPayload('666', '/tanya'));
+
+        $response->assertOk();
+        $this->assertDatabaseCount('advisory_sessions', 0);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'sendMessage')
+            && str_contains($request->data()['text'] ?? '', 'Ketik pertanyaanmu'));
+    }
 }

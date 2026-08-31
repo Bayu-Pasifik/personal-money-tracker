@@ -6,6 +6,7 @@ use App\Exceptions\AiParsingException;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\AdvisoryService;
 use App\Services\CommentGeneratorService;
 use App\Services\TransactionParserService;
 use Illuminate\Support\Carbon;
@@ -23,6 +24,7 @@ class TelegramBotService
         private readonly TelegramClient $telegram,
         private readonly TransactionParserService $parser,
         private readonly CommentGeneratorService $commentGenerator,
+        private readonly AdvisoryService $advisory,
     ) {}
 
     public function handleUpdate(array $update): void
@@ -43,6 +45,7 @@ class TelegramBotService
         match (true) {
             str_starts_with($text, '/start') => $this->handleStart($chatId, $text),
             $text === '/undo' => $this->handleUndo($chatId),
+            str_starts_with($text, '/tanya') => $this->handleTanya($chatId, $text),
             default => $this->handleTransactionInput($chatId, $text),
         };
     }
@@ -104,6 +107,35 @@ class TelegramBotService
         $last->delete();
 
         $this->telegram->sendMessage($chatId, "Dibatalkan: {$description} — {$amount}.");
+    }
+
+    private function handleTanya(string $chatId, string $text): void
+    {
+        $user = $this->resolveUser($chatId);
+
+        if (! $user) {
+            $this->telegram->sendMessage($chatId, $this->notLinkedMessage());
+
+            return;
+        }
+
+        $question = trim(substr($text, strlen('/tanya')));
+
+        if ($question === '') {
+            $this->telegram->sendMessage($chatId, "Ketik pertanyaanmu setelah /tanya, mis. /tanya aku mau upgrade PC 8 juta gimana kondisiku?");
+
+            return;
+        }
+
+        try {
+            $result = $this->advisory->ask($user, $question, 'telegram');
+        } catch (AiParsingException) {
+            $this->telegram->sendMessage($chatId, 'Lagi ada gangguan waktu memproses pertanyaanmu. Coba tanya lagi sebentar lagi.');
+
+            return;
+        }
+
+        $this->telegram->sendMessage($chatId, $result['answer']);
     }
 
     private function handleTransactionInput(string $chatId, string $text): void
