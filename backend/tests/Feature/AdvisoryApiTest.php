@@ -13,11 +13,11 @@ class AdvisoryApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function fakeClaudeTextResponse(string $text): void
+    private function fakeGeminiTextResponse(string $text): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
-                'content' => [['type' => 'text', 'text' => $text]],
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [['content' => ['role' => 'model', 'parts' => [['text' => $text]]]]],
             ]),
         ]);
     }
@@ -38,7 +38,7 @@ class AdvisoryApiTest extends TestCase
         ]);
 
         Sanctum::actingAs($user);
-        $this->fakeClaudeTextResponse('Saldo bersihmu bulan ini sekitar Rp500.000.');
+        $this->fakeGeminiTextResponse('Saldo bersihmu bulan ini sekitar Rp500.000.');
 
         $response = $this->postJson('/api/advisory/ask', ['question' => 'Gimana kondisi keuanganku?']);
 
@@ -47,9 +47,10 @@ class AdvisoryApiTest extends TestCase
 
         Http::assertSent(function ($request) {
             $body = $request->data();
+            $firstText = $body['contents'][0]['parts'][0]['text'] ?? '';
 
-            return str_contains($body['messages'][0]['content'] ?? '', 'DATA KEUANGAN')
-                && str_contains($body['messages'][0]['content'] ?? '', 'Rp500.000');
+            return str_contains($firstText, 'DATA KEUANGAN')
+                && str_contains($firstText, 'Rp500.000');
         });
     }
 
@@ -59,12 +60,12 @@ class AdvisoryApiTest extends TestCase
         $this->seed(CategorySeeder::class);
         Sanctum::actingAs($user);
 
-        $this->fakeClaudeTextResponse('Jawaban pertama.');
+        $this->fakeGeminiTextResponse('Jawaban pertama.');
         $first = $this->postJson('/api/advisory/ask', ['question' => 'Pertanyaan pertama']);
         $first->assertOk();
         $sessionId = $first->json('session_id');
 
-        $this->fakeClaudeTextResponse('Jawaban kedua.');
+        $this->fakeGeminiTextResponse('Jawaban kedua.');
         $second = $this->postJson('/api/advisory/ask', ['question' => 'Pertanyaan kedua']);
         $second->assertOk();
 

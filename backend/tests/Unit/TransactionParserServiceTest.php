@@ -8,18 +8,17 @@ use Tests\TestCase;
 
 class TransactionParserServiceTest extends TestCase
 {
-    private function fakeToolUseResponse(string $toolName, array $input, string $id = 'toolu_01'): array
+    private function fakeFunctionCallResponse(string $name, array $args): array
     {
         return [
-            'id' => 'msg_01',
-            'type' => 'message',
-            'role' => 'assistant',
-            'content' => [
+            'candidates' => [
                 [
-                    'type' => 'tool_use',
-                    'id' => $id,
-                    'name' => $toolName,
-                    'input' => $input,
+                    'content' => [
+                        'role' => 'model',
+                        'parts' => [
+                            ['functionCall' => ['name' => $name, 'args' => $args]],
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -28,7 +27,7 @@ class TransactionParserServiceTest extends TestCase
     public function test_parses_simple_expense_with_rb_suffix(): void
     {
         Http::fake([
-            '*' => Http::response($this->fakeToolUseResponse('record_transaction', [
+            '*' => Http::response($this->fakeFunctionCallResponse('record_transaction', [
                 'amount' => 30000,
                 'type' => 'expense',
                 'category' => 'Makanan',
@@ -47,7 +46,7 @@ class TransactionParserServiceTest extends TestCase
     public function test_parses_income_with_k_suffix(): void
     {
         Http::fake([
-            '*' => Http::response($this->fakeToolUseResponse('record_transaction', [
+            '*' => Http::response($this->fakeFunctionCallResponse('record_transaction', [
                 'amount' => 500000,
                 'type' => 'income',
                 'category' => 'Gaji',
@@ -65,7 +64,7 @@ class TransactionParserServiceTest extends TestCase
     public function test_parses_dotted_rupiah_format(): void
     {
         Http::fake([
-            '*' => Http::response($this->fakeToolUseResponse('record_transaction', [
+            '*' => Http::response($this->fakeFunctionCallResponse('record_transaction', [
                 'amount' => 150000,
                 'type' => 'expense',
                 'category' => 'Belanja',
@@ -81,7 +80,7 @@ class TransactionParserServiceTest extends TestCase
     public function test_ambiguous_input_returns_clarification_instead_of_guessing(): void
     {
         Http::fake([
-            '*' => Http::response($this->fakeToolUseResponse('request_clarification', [
+            '*' => Http::response($this->fakeFunctionCallResponse('request_clarification', [
                 'question' => "Nominalnya belum kebaca. Coba format seperti 'beli barang 50rb'.",
             ])),
         ]);
@@ -97,21 +96,15 @@ class TransactionParserServiceTest extends TestCase
     {
         Http::fake([
             '*' => Http::response([
-                'id' => 'msg_01',
-                'type' => 'message',
-                'role' => 'assistant',
-                'content' => [
+                'candidates' => [
                     [
-                        'type' => 'tool_use',
-                        'id' => 'toolu_01',
-                        'name' => 'record_transaction',
-                        'input' => ['amount' => 30000, 'type' => 'expense', 'category' => 'Makanan', 'description' => 'Makan siang'],
-                    ],
-                    [
-                        'type' => 'tool_use',
-                        'id' => 'toolu_02',
-                        'name' => 'record_transaction',
-                        'input' => ['amount' => 15000, 'type' => 'expense', 'category' => 'Transportasi', 'description' => 'Bensin'],
+                        'content' => [
+                            'role' => 'model',
+                            'parts' => [
+                                ['functionCall' => ['name' => 'record_transaction', 'args' => ['amount' => 30000, 'type' => 'expense', 'category' => 'Makanan', 'description' => 'Makan siang']]],
+                                ['functionCall' => ['name' => 'record_transaction', 'args' => ['amount' => 15000, 'type' => 'expense', 'category' => 'Transportasi', 'description' => 'Bensin']]],
+                            ],
+                        ],
                     ],
                 ],
             ]),
@@ -126,7 +119,7 @@ class TransactionParserServiceTest extends TestCase
     public function test_correction_intent_is_parsed_separately_from_new_transactions(): void
     {
         Http::fake([
-            '*' => Http::response($this->fakeToolUseResponse('correct_last_transaction', [
+            '*' => Http::response($this->fakeFunctionCallResponse('correct_last_transaction', [
                 'category' => 'Hiburan',
             ])),
         ]);
@@ -139,10 +132,10 @@ class TransactionParserServiceTest extends TestCase
         $this->assertSame('Hiburan', $result['corrections'][0]['category']);
     }
 
-    public function test_sends_tool_choice_any_so_model_must_use_a_tool(): void
+    public function test_forces_function_call_so_model_must_use_a_tool(): void
     {
         Http::fake([
-            '*' => Http::response($this->fakeToolUseResponse('record_transaction', [
+            '*' => Http::response($this->fakeFunctionCallResponse('record_transaction', [
                 'amount' => 30000,
                 'type' => 'expense',
                 'category' => 'Makanan',
@@ -153,9 +146,12 @@ class TransactionParserServiceTest extends TestCase
         app(TransactionParserService::class)->parse('makan malam 30rb');
 
         Http::assertSent(function ($request) {
-            return $request['tool_choice']['type'] === 'any'
-                && collect($request['tools'])->pluck('name')->contains('record_transaction')
-                && collect($request['tools'])->pluck('name')->contains('request_clarification');
+            $body = $request->data();
+            $names = collect($body['tools'][0]['functionDeclarations'])->pluck('name');
+
+            return ($body['toolConfig']['functionCallingConfig']['mode'] ?? null) === 'ANY'
+                && $names->contains('record_transaction')
+                && $names->contains('request_clarification');
         });
     }
 }

@@ -18,9 +18,9 @@ Panduan ini menjelaskan semua yang perlu disiapkan untuk menjalankan proyek ini,
 ### 1.2 Akun/kredensial yang harus kamu siapkan sendiri
 Tidak bisa dijalankan tanpa dua hal ini:
 
-1. **Anthropic API key** (Claude) — untuk parsing transaksi, komentar AI, dan advisory.
-   - Daftar/ambil key di [console.anthropic.com](https://console.anthropic.com).
-   - Butuh saldo/billing aktif di akun Anthropic.
+1. **Google Gemini API key** — untuk parsing transaksi, komentar AI, dan advisory. **Gratis**, tidak perlu kartu kredit.
+   - Ambil key di [aistudio.google.com/apikey](https://aistudio.google.com/apikey), login pakai akun Google.
+   - Free tier `gemini-2.0-flash` cukup generous untuk pemakaian personal (puluhan request/menit, ribuan/hari). Kalau kena limit, tunggu reset kuota (harian) atau kurangi frekuensi pemakaian.
 
 2. **Telegram Bot Token** — untuk bot Telegram.
    - Chat ke [@BotFather](https://t.me/BotFather) di Telegram, kirim `/newbot`, ikuti instruksinya.
@@ -52,9 +52,9 @@ DB_PASSWORD=
 TELEGRAM_BOT_TOKEN=          # token dari BotFather
 TELEGRAM_WEBHOOK_SECRET=     # string acak bebas, buat sendiri (mis. openssl rand -hex 20)
 
-ANTHROPIC_API_KEY=           # dari console.anthropic.com
-ANTHROPIC_PARSER_MODEL=claude-haiku-4-5-20251001
-ANTHROPIC_ADVISORY_MODEL=claude-sonnet-5
+GEMINI_API_KEY=              # dari aistudio.google.com/apikey (gratis)
+GEMINI_PARSER_MODEL=gemini-2.0-flash
+GEMINI_ADVISORY_MODEL=gemini-2.0-flash
 
 FRONTEND_URL=http://localhost:5173   # ganti ke domain frontend asli saat deploy
 ```
@@ -181,9 +181,9 @@ Sesuai arsitektur di `PRD.md` §8:
 ## 7. Checklist Ringkas
 
 - [ ] PHP 8.2+, Composer, Node 18+, MySQL terpasang
-- [ ] Anthropic API key aktif dan ada billing
+- [ ] Gemini API key aktif (gratis, dari aistudio.google.com/apikey)
 - [ ] Bot Telegram dibuat via BotFather, token disimpan
-- [ ] `backend/.env` terisi lengkap (DB, Telegram, Anthropic, Frontend URL)
+- [ ] `backend/.env` terisi lengkap (DB, Telegram, Gemini, Frontend URL)
 - [ ] Database dibuat, `php artisan migrate --seed` sukses
 - [ ] User asli dibuat (bukan cuma user contoh dari seeder)
 - [ ] `frontend/.env.local` terisi, `npm install` sukses

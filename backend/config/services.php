@@ -35,10 +35,10 @@ return [
         ],
     ],
 
-    'anthropic' => [
-        'api_key' => env('ANTHROPIC_API_KEY'),
-        'parser_model' => env('ANTHROPIC_PARSER_MODEL', 'claude-haiku-4-5-20251001'),
-        'advisory_model' => env('ANTHROPIC_ADVISORY_MODEL', 'claude-sonnet-5'),
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'parser_model' => env('GEMINI_PARSER_MODEL', 'gemini-2.0-flash'),
+        'advisory_model' => env('GEMINI_ADVISORY_MODEL', 'gemini-2.0-flash'),
     ],
 
     'telegram' => [

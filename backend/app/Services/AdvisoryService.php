@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Exceptions\AiParsingException;
 use App\Models\AdvisorySession;
 use App\Models\User;
-use App\Services\Ai\AnthropicClient;
+use App\Services\Ai\GeminiClient;
 use Illuminate\Support\Carbon;
 
 /**
@@ -19,7 +19,7 @@ class AdvisoryService
     private const MAX_HISTORY_MESSAGES = 20;
 
     public function __construct(
-        private readonly AnthropicClient $client,
+        private readonly GeminiClient $client,
     ) {}
 
     /**
@@ -34,16 +34,12 @@ class AdvisoryService
 
         $history = array_slice($messages, -self::MAX_HISTORY_MESSAGES);
 
-        try {
-            $response = $this->client->send(
-                model: config('services.anthropic.advisory_model'),
-                systemPrompt: $this->systemPrompt(),
-                messages: $this->prependContext($history, $user),
-                maxTokens: 1024,
-            );
-        } catch (AiParsingException $e) {
-            throw $e;
-        }
+        $response = $this->client->send(
+            model: config('services.gemini.advisory_model'),
+            systemPrompt: $this->systemPrompt(),
+            messages: $this->prependContext($history, $user),
+            maxTokens: 1024,
+        );
 
         $answer = $this->extractText($response);
 
@@ -151,13 +147,13 @@ class AdvisoryService
 
     private function extractText(array $response): string
     {
-        foreach ($response['content'] ?? [] as $block) {
-            if (($block['type'] ?? null) === 'text' && trim($block['text'] ?? '') !== '') {
-                return trim($block['text']);
+        foreach ($response['candidates'][0]['content']['parts'] ?? [] as $part) {
+            if (trim($part['text'] ?? '') !== '') {
+                return trim($part['text']);
             }
         }
 
-        throw new AiParsingException('Claude tidak mengembalikan jawaban teks untuk advisory.');
+        throw new AiParsingException('Gemini tidak mengembalikan jawaban teks untuk advisory.');
     }
 
     private function rp(int $amount): string

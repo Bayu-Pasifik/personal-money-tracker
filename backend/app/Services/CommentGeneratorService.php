@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\AiParsingException;
 use App\Models\Transaction;
-use App\Services\Ai\AnthropicClient;
+use App\Services\Ai\GeminiClient;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
  */
 class CommentGeneratorService
 {
-    public function __construct(private readonly AnthropicClient $client) {}
+    public function __construct(private readonly GeminiClient $client) {}
 
     public function generate(Transaction $transaction, int $categoryMonthlyTotal): string
     {
@@ -47,15 +47,15 @@ class CommentGeneratorService
 
         try {
             $response = $this->client->send(
-                model: config('services.anthropic.parser_model'),
+                model: config('services.gemini.parser_model'),
                 systemPrompt: $systemPrompt,
                 messages: [['role' => 'user', 'content' => $userMessage]],
                 maxTokens: 150,
             );
 
-            foreach ($response['content'] ?? [] as $block) {
-                if (($block['type'] ?? null) === 'text' && trim($block['text'] ?? '') !== '') {
-                    return trim($block['text']);
+            foreach ($response['candidates'][0]['content']['parts'] ?? [] as $part) {
+                if (trim($part['text'] ?? '') !== '') {
+                    return trim($part['text']);
                 }
             }
         } catch (AiParsingException $e) {

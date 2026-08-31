@@ -26,7 +26,7 @@
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
-        <env name="ANTHROPIC_API_KEY" value="test-fake-key"/>
+        <env name="GEMINI_API_KEY" value="test-fake-key"/>
         <env name="TELEGRAM_BOT_TOKEN" value="test-fake-token"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

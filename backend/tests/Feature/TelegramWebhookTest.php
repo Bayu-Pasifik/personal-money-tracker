@@ -13,18 +13,31 @@ class TelegramWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function fakeAiAndTelegram(array $anthropicToolResponse, ?string $anthropicTextComment = 'Wajar kok, masih dalam batas normal.'): void
+    /**
+     * @param  array<int, array{name: string, args: array<string, mixed>}>  $functionCalls
+     */
+    private function fakeAiAndTelegram(array $functionCalls, ?string $aiTextReply = 'Wajar kok, masih dalam batas normal.'): void
     {
-        Http::fake(function ($request) use ($anthropicToolResponse, $anthropicTextComment) {
-            if (str_contains($request->url(), 'api.anthropic.com')) {
+        Http::fake(function ($request) use ($functionCalls, $aiTextReply) {
+            if (str_contains($request->url(), 'generativelanguage.googleapis.com')) {
                 $body = $request->data();
 
                 if (isset($body['tools']) && $body['tools'] !== []) {
-                    return Http::response($anthropicToolResponse);
+                    return Http::response([
+                        'candidates' => [[
+                            'content' => [
+                                'role' => 'model',
+                                'parts' => array_map(
+                                    fn ($call) => ['functionCall' => $call],
+                                    $functionCalls,
+                                ),
+                            ],
+                        ]],
+                    ]);
                 }
 
                 return Http::response([
-                    'content' => [['type' => 'text', 'text' => $anthropicTextComment]],
+                    'candidates' => [['content' => ['role' => 'model', 'parts' => [['text' => $aiTextReply]]]]],
                 ]);
             }
 
@@ -66,12 +79,7 @@ class TelegramWebhookTest extends TestCase
         $this->seed(CategorySeeder::class);
 
         $this->fakeAiAndTelegram([
-            'content' => [[
-                'type' => 'tool_use',
-                'id' => 'toolu_01',
-                'name' => 'record_transaction',
-                'input' => ['amount' => 30000, 'type' => 'expense', 'category' => 'Makanan', 'description' => 'Makan malam'],
-            ]],
+            ['name' => 'record_transaction', 'args' => ['amount' => 30000, 'type' => 'expense', 'category' => 'Makanan', 'description' => 'Makan malam']],
         ]);
 
         $response = $this->postJson('/api/telegram/webhook', $this->webhookPayload('111', 'makan malam 30rb'));
@@ -99,12 +107,7 @@ class TelegramWebhookTest extends TestCase
         $this->seed(CategorySeeder::class);
 
         $this->fakeAiAndTelegram([
-            'content' => [[
-                'type' => 'tool_use',
-                'id' => 'toolu_01',
-                'name' => 'request_clarification',
-                'input' => ['question' => "Nominalnya belum kebaca. Coba format seperti 'beli barang 50rb'."],
-            ]],
+            ['name' => 'request_clarification', 'args' => ['question' => "Nominalnya belum kebaca. Coba format seperti 'beli barang 50rb'."]],
         ]);
 
         $response = $this->postJson('/api/telegram/webhook', $this->webhookPayload('222', 'beli barang'));
@@ -180,12 +183,7 @@ class TelegramWebhookTest extends TestCase
         ]);
 
         $this->fakeAiAndTelegram([
-            'content' => [[
-                'type' => 'tool_use',
-                'id' => 'toolu_01',
-                'name' => 'correct_last_transaction',
-                'input' => ['category' => 'Hiburan'],
-            ]],
+            ['name' => 'correct_last_transaction', 'args' => ['category' => 'Hiburan']],
         ]);
 
         $response = $this->postJson('/api/telegram/webhook', $this->webhookPayload('777', 'ganti kategori transaksi terakhir jadi Hiburan'));
@@ -203,12 +201,7 @@ class TelegramWebhookTest extends TestCase
         $this->seed(CategorySeeder::class);
 
         $this->fakeAiAndTelegram([
-            'content' => [[
-                'type' => 'tool_use',
-                'id' => 'toolu_01',
-                'name' => 'correct_last_transaction',
-                'input' => ['category' => 'Hiburan'],
-            ]],
+            ['name' => 'correct_last_transaction', 'args' => ['category' => 'Hiburan']],
         ]);
 
         $response = $this->postJson('/api/telegram/webhook', $this->webhookPayload('888', 'ganti kategori transaksi terakhir jadi Hiburan'));

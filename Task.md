@@ -14,7 +14,7 @@
 - [x] Setup Laravel Sanctum untuk auth API
 - [x] Setup CORS (`config/cors.php`) agar bisa diakses dari domain/subdomain frontend
 - [x] Setup struktur folder API (`routes/api.php`), buat health-check endpoint (`GET /api/ping`)
-- [x] Siapkan `.env.example` dengan semua variabel yang dibutuhkan (DB, Telegram bot token, Claude API key) — **jangan pernah commit `.env` asli**
+- [x] Siapkan `.env.example` dengan semua variabel yang dibutuhkan (DB, Telegram bot token, Gemini API key) — **jangan pernah commit `.env` asli**
 
 ### Frontend (React)
 - [x] Init project Vite + React + TypeScript (`npm create vite@latest frontend -- --template react-ts`)
@@ -42,7 +42,7 @@
 - [x] Model Eloquent + relasi (`User hasMany Transaction`, `Transaction belongsTo Category`, dst.)
 
 ### 1.2 Integrasi AI — Parsing Transaksi
-- [x] Buat service class `TransactionParserService` yang memanggil Claude API dengan tool-calling (schema: `amount`, `type`, `category`, `description`)
+- [x] Buat service class `TransactionParserService` yang memanggil Gemini API dengan function calling (schema: `amount`, `type`, `category`, `description`)
 - [x] Susun system prompt parser: instruksi format nominal Indonesia (`rb`, `k`, `jt`), instruksi "jangan menebak jika ambigu — minta klarifikasi"
 - [x] Tulis unit test dengan berbagai contoh input (`"makan malam 30rb"`, `"gaji freelance 500k"`, `"beli baju 150.000"`, input ambigu) untuk verifikasi akurasi parsing sebelum lanjut ke integrasi bot
 - [x] Buat endpoint internal `POST /api/ai/parse-transaction` (dipakai webhook Telegram maupun input manual dari web)
@@ -94,7 +94,7 @@ Diuji langsung di browser (login, dashboard, tambah/edit/hapus transaksi, filter
 **Status Fase 1 (MVP): kode lengkap, 22/22 test backend lulus, frontend build bersih.**
 Yang masih butuh tindakan dari kamu (di luar jangkauan environment ini):
 1. Daftarkan bot ke @BotFather, isi `TELEGRAM_BOT_TOKEN` di `.env`, lalu jalankan `php artisan telegram:set-webhook`.
-2. Isi `ANTHROPIC_API_KEY` di `.env` supaya parsing transaksi & komentar AI benar-benar memanggil Claude (saat ini kode sudah lengkap dan teruji lewat mock, tinggal pasang kunci asli).
+2. Isi `GEMINI_API_KEY` di `.env` supaya parsing transaksi & komentar AI benar-benar memanggil Gemini (saat ini kode sudah lengkap dan teruji lewat mock, tinggal pasang kunci asli — gratis, ambil di aistudio.google.com).
 3. Saat deploy ke shared hosting: pasang 1 baris cron cPanel (`* * * * * php /home/USER/artisan schedule:run >> /dev/null 2>&1`) untuk reminder harian.
 4. Bug yang ditemukan & diperbaiki selama QA: form tambah transaksi di web sempat bisa salah simpan kategori kalau user tidak menyentuh dropdown kategori — sudah diperbaiki di frontend & diperkuat validasi di backend (lihat commit "feat(frontend): build dashboard, transactions, settings pages...").
 
@@ -102,9 +102,9 @@ Yang masih butuh tindakan dari kamu (di luar jangkauan environment ini):
 
 ## Fase 2
 
-- [x] Endpoint advisory: `POST /api/advisory/ask` — ambil ringkasan data user sebagai konteks, kirim ke Claude API (percakapan bebas, bukan tool-calling). Riwayat percakapan disimpan per sesi (idle 30 menit) di `advisory_sessions` untuk memori kontekstual jangka pendek (FR-2.4)
+- [x] Endpoint advisory: `POST /api/advisory/ask` — ambil ringkasan data user sebagai konteks, kirim ke Gemini API (percakapan bebas, bukan function calling). Riwayat percakapan disimpan per sesi (idle 30 menit) di `advisory_sessions` untuk memori kontekstual jangka pendek (FR-2.4)
 - [x] Command Telegram `/tanya <pertanyaan>` — panggil endpoint advisory yang sama
-- [x] Panel chat advisory di web (styling sesuai StyleGuide 5.4 — bubble AI vs user, angka tetap mono inline). Diuji di browser (bubble user hijau, empty state, error state saat `ANTHROPIC_API_KEY` belum diisi menampilkan pesan error yang jelas sesuai StyleGuide §7)
+- [x] Panel chat advisory di web (styling sesuai StyleGuide 5.4 — bubble AI vs user, angka tetap mono inline). Diuji di browser (bubble user hijau, empty state, error state saat `GEMINI_API_KEY` belum diisi menampilkan pesan error yang jelas sesuai StyleGuide §7)
 - [x] Simpan riwayat sesi advisory (`advisory_sessions`) untuk konteks jangka pendek dalam sesi yang sama
 - [x] CRUD kategori custom dari halaman Pengaturan web — kategori default (`is_default`) tidak bisa diubah/dihapus, kategori yang masih dipakai transaksi tidak bisa dihapus. Diuji otomatis (`CategoryApiTest`, 6 skenario) + manual di browser
 - [x] Koreksi transaksi via chat (selain `/undo`, mis. "ganti kategori transaksi terakhir jadi Hiburan") — tool ketiga `correct_last_transaction` di parser AI (kategori/nominal/deskripsi), diterapkan ke transaksi terakhir user

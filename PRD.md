@@ -135,7 +135,7 @@ MVP dirancang **single-tenant** dulu (autentikasi sederhana, satu Telegram chat 
                          └───────┬─────────────┬────────┘
                                  │             │
                      ┌───────────▼───┐   ┌─────▼─────────┐
-                     │ MySQL/MariaDB  │   │ Claude API     │
+                     │ MySQL/MariaDB  │   │ Gemini API     │
                      │ (via Eloquent) │   │ (parsing &     │
                      │                │   │ advisory)      │
                      └────────────────┘   └────────────────┘
@@ -163,7 +163,7 @@ MVP dirancang **single-tenant** dulu (autentikasi sederhana, satu Telegram chat 
 | Backend | **Laravel (PHP)**, diakses sebagai REST API | Laravel jalan native di hampir semua shared hosting (Apache/LiteSpeed + PHP-FPM); request-based, tidak perlu proses long-running — cocok untuk webhook Telegram maupun REST API dashboard. Kamu juga sudah familiar dari SIGAP |
 | Database | **MySQL/MariaDB + Eloquent ORM** | Ini yang default tersedia di hampir semua paket shared hosting (via cPanel) |
 | Telegram Bot | **Route Laravel biasa** sebagai webhook endpoint (`POST /api/telegram/webhook`), pakai library `irazasyed/telegram-bot-sdk` atau HTTP client manual | Webhook cocok untuk shared hosting karena Telegram yang memanggil endpoint saat ada pesan — tidak perlu proses bot yang menyala terus-menerus |
-| AI Engine | **Anthropic Claude API**, dipanggil dari Laravel via Guzzle/HTTP client bawaan Laravel (structured output/tool-calling untuk parsing transaksi ke JSON; percakapan bebas untuk advisory) | Tool-calling memastikan output parsing selalu berupa data terstruktur valid, bukan teks bebas yang rawan salah parse |
+| AI Engine | **Google Gemini API** (`gemini-2.0-flash`), dipanggil dari Laravel via HTTP client bawaan Laravel (function calling untuk parsing transaksi ke JSON; percakapan bebas untuk advisory) | Function calling memastikan output parsing selalu berupa data terstruktur valid, bukan teks bebas yang rawan salah parse. Gemini dipilih karena free tier-nya generous untuk pemakaian personal, tanpa perlu kartu kredit |
 | Scheduler (reminder) | **Laravel Scheduler**, dipicu oleh 1 baris **Cron Job cPanel** (`* * * * * php /home/user/artisan schedule:run`) | Ini pola standar Laravel di shared hosting — cukup 1 cron job, semua jadwal lain diatur di kode Laravel (`app/Console/Kernel.php`) |
 | Auth | **Laravel Sanctum** (token-based, untuk API ke React SPA) | Ringan, standar untuk skenario SPA + API terpisah domain/subdomain, cukup untuk single-user dan mudah di-extend ke multi-user |
 | Hosting | Shared hosting (cPanel) — Laravel di subdomain `api.domain.com` (document root ke folder `public/` Laravel), React SPA build statis di domain utama atau subdomain lain | Struktur umum untuk memisahkan backend PHP dan frontend statis di satu paket shared hosting; perlu konfigurasi CORS di Laravel agar API bisa diakses dari domain frontend |
@@ -205,14 +205,14 @@ ReminderLog
 
 **Alur 1 — Input Transaksi via Telegram**
 1. User kirim pesan → Telegram webhook memanggil endpoint backend
-2. Backend kirim teks ke Claude API dengan tool-definition `record_transaction(amount, type, category, description)`
+2. Backend kirim teks ke Gemini API dengan function-definition `record_transaction(amount, type, category, description)`
 3. Jika AI yakin → transaksi disimpan ke DB → generate komentar singkat → balas ke user
 4. Jika AI tidak yakin (nominal/kategori ambigu) → balas dengan pertanyaan klarifikasi, tunggu balasan user sebelum simpan
 
 **Alur 2 — Advisory / Saran Keuangan**
 1. User kirim `/tanya <pertanyaan>` di Telegram atau chat di web
 2. Backend ambil ringkasan data user (saldo, pengeluaran 30 hari terakhir per kategori, tren) sebagai konteks
-3. Konteks + pertanyaan dikirim ke Claude API (percakapan bebas, bukan tool-calling)
+3. Konteks + pertanyaan dikirim ke Gemini API (percakapan bebas, bukan function calling)
 4. Jawaban AI dikirim balik, mereferensikan angka riil dari data user
 
 **Alur 3 — Reminder Harian**

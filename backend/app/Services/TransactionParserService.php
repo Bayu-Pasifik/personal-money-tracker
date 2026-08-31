@@ -3,17 +3,17 @@
 namespace App\Services;
 
 use App\Exceptions\AiParsingException;
-use App\Services\Ai\AnthropicClient;
+use App\Services\Ai\GeminiClient;
 use Database\Seeders\CategorySeeder;
 
 /**
  * Mem-parsing teks bebas (Telegram / input manual web) menjadi transaksi
- * terstruktur lewat Claude tool-calling. Lihat PRD.md §6.1 (FR-1.1—1.4)
+ * terstruktur lewat Gemini function calling. Lihat PRD.md §6.1 (FR-1.1—1.4)
  * dan §11 untuk desain prompt.
  */
 class TransactionParserService
 {
-    public function __construct(private readonly AnthropicClient $client) {}
+    public function __construct(private readonly GeminiClient $client) {}
 
     /**
      * @param  array<int, string>  $availableCategories  Nama kategori milik user (default + custom)
@@ -31,17 +31,17 @@ class TransactionParserService
             : array_column(CategorySeeder::DEFAULT_CATEGORIES, 'name');
 
         $response = $this->client->send(
-            model: config('services.anthropic.parser_model'),
+            model: config('services.gemini.parser_model'),
             systemPrompt: $this->systemPrompt($categories),
             messages: [
                 ['role' => 'user', 'content' => $text],
             ],
             tools: $this->tools($categories),
-            toolChoice: ['type' => 'any'],
+            forceFunctionCall: true,
             maxTokens: 1024,
         );
 
-        return $this->extractToolCalls($response);
+        return $this->extractFunctionCalls($response);
     }
 
     /**
@@ -54,7 +54,7 @@ class TransactionParserService
         return <<<PROMPT
             Kamu adalah parser transaksi keuangan untuk aplikasi FinTrack AI. Tugasmu HANYA
             mengubah satu pesan pengguna (Bahasa Indonesia, gaya chat santai) menjadi satu
-            atau beberapa transaksi terstruktur lewat tool `record_transaction`.
+            atau beberapa transaksi terstruktur lewat function `record_transaction`.
 
             Kategori yang tersedia: {$categoryList}
             Jika tidak ada yang cocok, pakai "Lainnya".
@@ -103,23 +103,23 @@ class TransactionParserService
             [
                 'name' => 'record_transaction',
                 'description' => 'Catat satu transaksi keuangan yang berhasil dipahami dengan yakin dari teks pengguna.',
-                'input_schema' => [
-                    'type' => 'object',
+                'parameters' => [
+                    'type' => 'OBJECT',
                     'properties' => [
                         'amount' => [
-                            'type' => 'integer',
+                            'type' => 'INTEGER',
                             'description' => 'Nominal dalam Rupiah, angka bulat positif tanpa titik/koma. Contoh: 30000',
                         ],
                         'type' => [
-                            'type' => 'string',
+                            'type' => 'STRING',
                             'enum' => ['income', 'expense'],
                         ],
                         'category' => [
-                            'type' => 'string',
+                            'type' => 'STRING',
                             'enum' => $categories,
                         ],
                         'description' => [
-                            'type' => 'string',
+                            'type' => 'STRING',
                             'description' => 'Deskripsi singkat transaksi berdasarkan kata-kata pengguna',
                         ],
                     ],
@@ -129,11 +129,11 @@ class TransactionParserService
             [
                 'name' => 'request_clarification',
                 'description' => 'Dipanggil jika input ambigu (nominal tidak jelas) atau tidak mengandung transaksi keuangan. Jangan menebak.',
-                'input_schema' => [
-                    'type' => 'object',
+                'parameters' => [
+                    'type' => 'OBJECT',
                     'properties' => [
                         'question' => [
-                            'type' => 'string',
+                            'type' => 'STRING',
                             'description' => 'Pertanyaan klarifikasi singkat dalam Bahasa Indonesia untuk ditanyakan balik ke pengguna',
                         ],
                     ],
@@ -143,12 +143,12 @@ class TransactionParserService
             [
                 'name' => 'correct_last_transaction',
                 'description' => 'Dipanggil kalau pesan user adalah koreksi ke transaksi TERAKHIR yang sudah tersimpan (bukan transaksi baru). Isi hanya field yang disebut berubah.',
-                'input_schema' => [
-                    'type' => 'object',
+                'parameters' => [
+                    'type' => 'OBJECT',
                     'properties' => [
-                        'category' => ['type' => 'string', 'enum' => $categories],
-                        'amount' => ['type' => 'integer', 'description' => 'Nominal baru dalam Rupiah, angka bulat positif'],
-                        'description' => ['type' => 'string', 'description' => 'Deskripsi baru transaksi'],
+                        'category' => ['type' => 'STRING', 'enum' => $categories],
+                        'amount' => ['type' => 'INTEGER', 'description' => 'Nominal baru dalam Rupiah, angka bulat positif'],
+                        'description' => ['type' => 'STRING', 'description' => 'Deskripsi baru transaksi'],
                     ],
                 ],
             ],
@@ -159,35 +159,37 @@ class TransactionParserService
      * @param  array<string, mixed>  $response
      * @return array{status: string, transactions: array<int, array<string, mixed>>, clarifications: array<int, string>, corrections: array<int, array<string, mixed>>}
      */
-    private function extractToolCalls(array $response): array
+    private function extractFunctionCalls(array $response): array
     {
-        $content = $response['content'] ?? null;
+        $parts = $response['candidates'][0]['content']['parts'] ?? null;
 
-        if (! is_array($content)) {
-            throw new AiParsingException('Respons Claude API tidak berisi content yang valid.');
+        if (! is_array($parts)) {
+            throw new AiParsingException('Respons Gemini API tidak berisi content yang valid.');
         }
 
         $transactions = [];
         $clarifications = [];
         $corrections = [];
 
-        foreach ($content as $block) {
-            if (($block['type'] ?? null) !== 'tool_use') {
+        foreach ($parts as $part) {
+            $call = $part['functionCall'] ?? null;
+
+            if (! $call) {
                 continue;
             }
 
-            $input = $block['input'] ?? [];
+            $input = $call['args'] ?? [];
 
-            if ($block['name'] === 'record_transaction') {
+            if ($call['name'] === 'record_transaction') {
                 $transactions[] = [
                     'amount' => (int) ($input['amount'] ?? 0),
                     'type' => $input['type'] ?? 'expense',
                     'category' => $input['category'] ?? 'Lainnya',
                     'description' => $input['description'] ?? '',
                 ];
-            } elseif ($block['name'] === 'request_clarification') {
+            } elseif ($call['name'] === 'request_clarification') {
                 $clarifications[] = $input['question'] ?? 'Bisa diperjelas lagi transaksinya?';
-            } elseif ($block['name'] === 'correct_last_transaction') {
+            } elseif ($call['name'] === 'correct_last_transaction') {
                 $corrections[] = [
                     'category' => $input['category'] ?? null,
                     'amount' => isset($input['amount']) ? (int) $input['amount'] : null,
@@ -197,7 +199,7 @@ class TransactionParserService
         }
 
         if ($transactions === [] && $clarifications === [] && $corrections === []) {
-            throw new AiParsingException('Claude tidak memanggil tool manapun untuk input ini.');
+            throw new AiParsingException('Gemini tidak memanggil function manapun untuk input ini.');
         }
 
         $status = match (true) {
