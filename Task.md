@@ -86,10 +86,17 @@ Diuji langsung di browser (login, dashboard, tambah/edit/hapus transaksi, filter
 - [x] Test idempotency: pastikan tidak kirim reminder dobel walau cron/schedule run berkali-kali dalam rentang waktu yang sama
 
 ### 1.7 QA Fase 1
-- [ ] Test end-to-end: kirim pesan Telegram → cek muncul di DB → cek muncul di dashboard
-- [ ] Test reminder: kosongkan transaksi hari ini, pastikan reminder terkirim sesuai jam yang diatur
-- [ ] Test auth: pastikan endpoint API tidak bisa diakses tanpa token
-- [ ] Review manual terhadap StyleGuide (warna, font, spacing) — tidak ada elemen yang menyimpang dari token yang ditentukan
+- [x] Test end-to-end: kirim pesan Telegram → cek muncul di DB → cek muncul di dashboard — dicover otomatis lewat `TelegramWebhookTest` (webhook → parse → simpan) + verifikasi manual di browser (data tampil benar di Dashboard & tabel Transaksi)
+- [x] Test reminder: kosongkan transaksi hari ini, pastikan reminder terkirim sesuai jam yang diatur — `ReminderCheckDailyCommandTest` (5 skenario, termasuk idempotency)
+- [x] Test auth: pastikan endpoint API tidak bisa diakses tanpa token — `DashboardApiTest::test_transactions_endpoint_requires_authentication` + ownership check antar-user
+- [x] Review manual terhadap StyleGuide (warna, font, spacing) — tidak ada elemen yang menyimpang dari token yang ditentukan — diverifikasi lewat browser testing (login, dashboard, CRUD transaksi, filter, cap badge, halaman Pengaturan) dan grep hex color di source: hanya `index.css` (definisi token), `categoryColors.ts`, dan `TrendLineChart.tsx` (warna literal untuk Recharts SVG props) yang berisi hex, semuanya persis nilai StyleGuide §2 & §5.3/5.5
+
+**Status Fase 1 (MVP): kode lengkap, 22/22 test backend lulus, frontend build bersih.**
+Yang masih butuh tindakan dari kamu (di luar jangkauan environment ini):
+1. Daftarkan bot ke @BotFather, isi `TELEGRAM_BOT_TOKEN` di `.env`, lalu jalankan `php artisan telegram:set-webhook`.
+2. Isi `ANTHROPIC_API_KEY` di `.env` supaya parsing transaksi & komentar AI benar-benar memanggil Claude (saat ini kode sudah lengkap dan teruji lewat mock, tinggal pasang kunci asli).
+3. Saat deploy ke shared hosting: pasang 1 baris cron cPanel (`* * * * * php /home/USER/artisan schedule:run >> /dev/null 2>&1`) untuk reminder harian.
+4. Bug yang ditemukan & diperbaiki selama QA: form tambah transaksi di web sempat bisa salah simpan kategori kalau user tidak menyentuh dropdown kategori — sudah diperbaiki di frontend & diperkuat validasi di backend (lihat commit "feat(frontend): build dashboard, transactions, settings pages...").
 
 ---
 
