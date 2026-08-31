@@ -105,8 +105,8 @@ Yang masih butuh tindakan dari kamu (di luar jangkauan environment ini):
 - [x] Endpoint advisory: `POST /api/advisory/ask` — ambil ringkasan data user sebagai konteks, kirim ke Claude API (percakapan bebas, bukan tool-calling). Riwayat percakapan disimpan per sesi (idle 30 menit) di `advisory_sessions` untuk memori kontekstual jangka pendek (FR-2.4)
 - [x] Command Telegram `/tanya <pertanyaan>` — panggil endpoint advisory yang sama
 - [x] Panel chat advisory di web (styling sesuai StyleGuide 5.4 — bubble AI vs user, angka tetap mono inline). Diuji di browser (bubble user hijau, empty state, error state saat `ANTHROPIC_API_KEY` belum diisi menampilkan pesan error yang jelas sesuai StyleGuide §7)
-- [ ] Simpan riwayat sesi advisory (`advisory_sessions`) untuk konteks jangka pendek dalam sesi yang sama
-- [ ] CRUD kategori custom dari halaman Pengaturan web
+- [x] Simpan riwayat sesi advisory (`advisory_sessions`) untuk konteks jangka pendek dalam sesi yang sama
+- [x] CRUD kategori custom dari halaman Pengaturan web — kategori default (`is_default`) tidak bisa diubah/dihapus, kategori yang masih dipakai transaksi tidak bisa dihapus. Diuji otomatis (`CategoryApiTest`, 6 skenario) + manual di browser
 - [ ] Koreksi transaksi via chat (selain `/undo`, mis. "ganti kategori transaksi terakhir jadi Hiburan")
 
 ---

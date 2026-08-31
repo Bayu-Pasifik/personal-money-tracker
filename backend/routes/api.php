@@ -30,6 +30,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/telegram/connect-code', [TelegramConnectController::class, 'generateCode']);
 
     Route::apiResource('transactions', TransactionController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::apiResource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('/summary', SummaryController::class);
 });
