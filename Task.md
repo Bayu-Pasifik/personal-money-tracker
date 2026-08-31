@@ -115,8 +115,8 @@ Yang masih butuh tindakan dari kamu (di luar jangkauan environment ini):
 
 ## Fase 3
 
-- [ ] Migration & model `budgets` (`user_id`, `category_id`, `month`, `limit_amount`)
-- [ ] UI setting budget per kategori di halaman Pengaturan
+- [x] Migration & model `budgets` (`user_id`, `category_id`, `month`, `limit_amount`)
+- [x] UI setting budget per kategori di halaman Pengaturan — progress bar spent/limit, warna merah kalau over budget, diuji di browser
 - [ ] Logic notifikasi early-warning saat pengeluaran kategori mendekati/melewati limit (trigger dari job yang jalan setiap transaksi baru tersimpan)
 - [ ] Export laporan bulanan (PDF dan/atau Excel) — sesuaikan library yang ringan untuk shared hosting (mis. `barryvdh/laravel-dompdf`)
 - [ ] Dukungan multi-wallet (`wallets` table, relasi ke `transactions`)

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AdvisoryController;
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\SummaryController;
 use App\Http\Controllers\Api\TelegramConnectController;
@@ -31,5 +32,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('transactions', TransactionController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::apiResource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::apiResource('budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
     Route::get('/summary', SummaryController::class);
 });

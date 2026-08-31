@@ -47,4 +47,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ReminderLog::class);
     }
+
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(Budget::class);
+    }
 }

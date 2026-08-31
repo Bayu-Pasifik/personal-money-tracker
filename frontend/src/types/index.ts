@@ -46,3 +46,12 @@ export interface MonthlySummary {
   balance: number
   by_category: CategoryBreakdown[]
 }
+
+export interface Budget {
+  id: number
+  category_id: number
+  category_name: string
+  month: string
+  limit_amount: number
+  spent: number
+}
