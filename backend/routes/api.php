@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AiController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\SummaryController;
 use App\Http\Controllers\Api\TelegramConnectController;
 use App\Http\Controllers\Api\TelegramWebhookController;
+use App\Http\Controllers\Api\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -10,13 +14,20 @@ Route::get('/ping', function () {
     return response()->json(['status' => 'ok', 'app' => config('app.name')]);
 });
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/telegram/webhook', TelegramWebhookController::class);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+
     Route::post('/ai/parse-transaction', [AiController::class, 'parseTransaction']);
     Route::post('/telegram/connect-code', [TelegramConnectController::class, 'generateCode']);
-});
 
-Route::post('/telegram/webhook', TelegramWebhookController::class);
+    Route::apiResource('transactions', TransactionController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/summary', SummaryController::class);
+});

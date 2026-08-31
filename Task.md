@@ -59,13 +59,13 @@
 - [x] Handle multi-transaksi dalam satu pesan (pesan multi-baris)
 
 ### 1.4 REST API untuk Dashboard
-- [ ] `GET /api/transactions` (filter: tanggal, kategori, tipe; pagination)
-- [ ] `POST /api/transactions` (input manual dari web)
-- [ ] `PUT /api/transactions/{id}` (edit)
-- [ ] `DELETE /api/transactions/{id}` (hapus)
-- [ ] `GET /api/summary?month=YYYY-MM` (total pemasukan, pengeluaran, saldo, breakdown per kategori)
-- [ ] `GET /api/categories`
-- [ ] Endpoint auth: `POST /api/login`, `POST /api/logout` (Sanctum)
+- [x] `GET /api/transactions` (filter: tanggal, kategori, tipe; pagination)
+- [x] `POST /api/transactions` (input manual dari web)
+- [x] `PUT /api/transactions/{id}` (edit)
+- [x] `DELETE /api/transactions/{id}` (hapus)
+- [x] `GET /api/summary?month=YYYY-MM` (total pemasukan, pengeluaran, saldo, breakdown per kategori)
+- [x] `GET /api/categories`
+- [x] Endpoint auth: `POST /api/login`, `POST /api/logout` (Sanctum)
 
 ### 1.5 Web Dashboard — Halaman
 - [ ] Halaman Login (single-user, sesuai StyleGuide 5.1 untuk styling tombol)
