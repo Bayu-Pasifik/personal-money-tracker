@@ -17,12 +17,12 @@
 - [x] Siapkan `.env.example` dengan semua variabel yang dibutuhkan (DB, Telegram bot token, Claude API key) — **jangan pernah commit `.env` asli**
 
 ### Frontend (React)
-- [ ] Init project Vite + React + TypeScript (`npm create vite@latest frontend -- --template react-ts`)
-- [ ] Setup Tailwind CSS, masukkan token warna & font dari StyleGuide.md ke `tailwind.config.ts` (warna, font-family, spacing scale)
-- [ ] Import font: Fraunces, Inter, IBM Plex Mono (via self-host atau Google Fonts)
-- [ ] Setup struktur folder (`components/`, `pages/`, `lib/`, `hooks/`, `types/`)
-- [ ] Setup axios/fetch wrapper untuk komunikasi ke API Laravel + interceptor token Sanctum
-- [ ] Setup routing dasar (React Router): halaman Login, Dashboard, Transaksi, Advisory, Pengaturan
+- [x] Init project Vite + React + TypeScript (`npm create vite@latest frontend -- --template react-ts`)
+- [x] Setup Tailwind CSS, masukkan token warna & font dari StyleGuide.md ke `tailwind.config.ts` (warna, font-family, spacing scale) — pakai Tailwind v4 CSS-first `@theme` di `src/index.css` (setara fungsinya dengan `tailwind.config.ts`)
+- [x] Import font: Fraunces, Inter, IBM Plex Mono (via self-host atau Google Fonts)
+- [x] Setup struktur folder (`components/`, `pages/`, `lib/`, `hooks/`, `types/`)
+- [x] Setup axios/fetch wrapper untuk komunikasi ke API Laravel + interceptor token Sanctum
+- [x] Setup routing dasar (React Router): halaman Login, Dashboard, Transaksi, Advisory, Pengaturan
 
 ### Infrastruktur
 - [ ] Cek akses terminal shared hosting: pastikan bisa jalankan `composer`, `php artisan`, `npm run build`

@@ -1,0 +1,54 @@
+@import 'tailwindcss';
+
+/*
+  Design tokens dari StyleGuide.md — palet "ledger" FinTrack AI.
+  Semua nilai di sini adalah sumber kebenaran untuk warna/font/spacing;
+  jangan pakai warna/font di luar token ini di komponen.
+*/
+@theme {
+  --color-paper: #eaede3;
+  --color-paper-elevated: #f5f7f0;
+  --color-ink: #1c2620;
+  --color-ink-muted: #5b6358;
+  --color-border: #d6d9cc;
+  --color-ledger-green: #2f6f5e;
+  --color-ledger-green-soft: #4f9c82;
+  --color-ledger-red: #a63d2f;
+  --color-stamp-gold: #9c7a2e;
+
+  /* Dark mode variant */
+  --color-ink-bg-dark: #14201b;
+  --color-paper-elevated-dark: #1c2a23;
+  --color-text-on-dark: #eaede3;
+  --color-ledger-green-dark: #5fa98c;
+  --color-ledger-red-dark: #d97a64;
+  --color-stamp-gold-dark: #c9a24e;
+
+  /* Palet kategori (5.3 StyleGuide) — muted, desaturated */
+  --color-category-makanan: #7a8b6f;
+  --color-category-transportasi: #6f8b9a;
+  --color-category-belanja: #9a7f6f;
+  --color-category-hiburan: #8b6f8a;
+  --color-category-tagihan: #9a8a5f;
+  --color-category-kesehatan: #6f9a8b;
+
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-data: 'IBM Plex Mono', monospace;
+
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
