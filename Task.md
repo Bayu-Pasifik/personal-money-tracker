@@ -42,10 +42,10 @@
 - [x] Model Eloquent + relasi (`User hasMany Transaction`, `Transaction belongsTo Category`, dst.)
 
 ### 1.2 Integrasi AI — Parsing Transaksi
-- [ ] Buat service class `TransactionParserService` yang memanggil Claude API dengan tool-calling (schema: `amount`, `type`, `category`, `description`)
-- [ ] Susun system prompt parser: instruksi format nominal Indonesia (`rb`, `k`, `jt`), instruksi "jangan menebak jika ambigu — minta klarifikasi"
-- [ ] Tulis unit test dengan berbagai contoh input (`"makan malam 30rb"`, `"gaji freelance 500k"`, `"beli baju 150.000"`, input ambigu) untuk verifikasi akurasi parsing sebelum lanjut ke integrasi bot
-- [ ] Buat endpoint internal `POST /api/ai/parse-transaction` (dipakai webhook Telegram maupun input manual dari web)
+- [x] Buat service class `TransactionParserService` yang memanggil Claude API dengan tool-calling (schema: `amount`, `type`, `category`, `description`)
+- [x] Susun system prompt parser: instruksi format nominal Indonesia (`rb`, `k`, `jt`), instruksi "jangan menebak jika ambigu — minta klarifikasi"
+- [x] Tulis unit test dengan berbagai contoh input (`"makan malam 30rb"`, `"gaji freelance 500k"`, `"beli baju 150.000"`, input ambigu) untuk verifikasi akurasi parsing sebelum lanjut ke integrasi bot
+- [x] Buat endpoint internal `POST /api/ai/parse-transaction` (dipakai webhook Telegram maupun input manual dari web)
 
 ### 1.3 Telegram Bot
 - [ ] Daftarkan bot lewat BotFather, simpan token di `.env`

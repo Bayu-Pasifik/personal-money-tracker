@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'parser_model' => env('ANTHROPIC_PARSER_MODEL', 'claude-haiku-4-5-20251001'),
+        'advisory_model' => env('ANTHROPIC_ADVISORY_MODEL', 'claude-sonnet-5'),
+    ],
+
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+    ],
+
 ];
